@@ -42,7 +42,7 @@ fs.readdirSync(routesPath).forEach(async (file) => {
     const route = await import(`./routes/${file}`);
     // usa come prefisso il nome del file senza estensione
     const routeName = "/api/" + file.replace(".js", "");
-    app.use(routeName, route.default); // attenzione: con import ES Modules devi usare .default
+    app.use(routeName, route.default);
     console.log(`📦 Rotta caricata: ${routeName}`);
   }
 });

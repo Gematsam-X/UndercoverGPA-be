@@ -2,14 +2,18 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/User.ts";
 import express from "express";
+import cookieParser from "cookie-parser"; // NON dimenticare di usarlo nel server
 
 const JWT_SECRET = process.env.JWT_SECRET;
-const ACCESS_TOKEN_EXPIRE = "1h"; // JWT breve, da rinfrescare
-const REFRESH_TOKEN_EXPIRE = "30d"; // Inattività massima
+const ACCESS_TOKEN_EXPIRE = "1h"; // access token breve
+const REFRESH_TOKEN_EXPIRE = "30d"; // refresh token lungo
 const router = express.Router();
 
-// --- FUNZIONI UTILI JWT ---
-// Genera access token breve
+// Middleware cookie parser necessario
+router.use(cookieParser());
+
+// --- FUNZIONI JWT ---
+// Genera access token breve (lato client useremo questo)
 const generateAccessToken = (user) =>
   jwt.sign(
     { id: user._id, username: user.username, email: user.email },
@@ -17,12 +21,11 @@ const generateAccessToken = (user) =>
     { expiresIn: ACCESS_TOKEN_EXPIRE }
   );
 
-// Genera refresh token lungo
+// Genera refresh token lungo (con solo id per sicurezza)
 const generateRefreshToken = (user) =>
   jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRE });
 
-
-// 🔑 Login + generazione token
+// --- LOGIN ---
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -39,15 +42,15 @@ router.post("/login", async (req, res) => {
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
-    // 🔒 Salva refresh token in cookie HTTP-only invece che in JSON
+    // Salva refresh token nel cookie HTTP-only
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: false, // true se sei in HTTPS
+      secure: false, // true se HTTPS
       sameSite: "Strict",
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 giorni
     });
 
-    // ✅ Risposta JSON solo con accessToken e username
+    // Ritorna solo accessToken e username (email non serve lato client se vuoi)
     res.json({
       message: "Login riuscito!",
       accessToken,
@@ -59,7 +62,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// 👤 Registrazione
+// --- REGISTRAZIONE ---
 router.post("/register", async (req, res) => {
   try {
     const { email, username, password } = req.body;
@@ -81,9 +84,9 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// 🔄 Endpoint per rinnovare token
+// --- RINNOVA ACCESS TOKEN ---
 router.post("/token", async (req, res) => {
-  const { refreshToken } = req.cookies; // prende il cookie HTTP-only
+  const { refreshToken } = req.cookies; // legge cookie HTTP-only
   if (!refreshToken)
     return res.status(401).json({ error: "Refresh token mancante" });
 
@@ -99,7 +102,7 @@ router.post("/token", async (req, res) => {
   }
 });
 
-// Check email o username
+// --- CHECK EMAIL / USERNAME ---
 router.get("/check", async (req, res) => {
   try {
     const { email, username } = req.query;
