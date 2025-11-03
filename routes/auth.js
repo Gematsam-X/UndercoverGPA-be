@@ -45,9 +45,10 @@ router.post("/login", async (req, res) => {
     // Salva refresh token nel cookie HTTP-only
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: false, // true se HTTPS
-      sameSite: "Strict",
+      secure: false, // ⚠️ metti true solo se usi HTTPS
+      sameSite: "Lax", // ✅ "Lax" permette cookie tra localhost:4200 e :3000
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 giorni
+      path: "/", // 👈 importante per essere letto ovunque
     });
 
     // Ritorna solo accessToken e username (email non serve lato client se vuoi)
@@ -68,8 +69,12 @@ router.post("/register", async (req, res) => {
     const { email, username, password } = req.body;
     if (!email || !username || !password)
       return res.status(400).json({ error: "Tutti i campi sono obbligatori" });
+    const emailNormalized = email.toLowerCase();
 
-    const existingUser = await User.findOne({ $or: [{ email }, { username }] });
+    const existingUser = await User.findOne({
+      $or: [{ email: emailNormalized }, { username }],
+    });
+
     if (existingUser)
       return res.status(400).json({ error: "Email o username già registrati" });
 
@@ -88,7 +93,7 @@ router.post("/register", async (req, res) => {
 router.post("/token", async (req, res) => {
   const { refreshToken } = req.cookies; // legge cookie HTTP-only
   if (!refreshToken)
-    return res.status(401).json({ error: "Refresh token mancante" });
+    return res.status(400).json({ error: "Refresh token mancante" });
 
   try {
     const payload = jwt.verify(refreshToken, JWT_SECRET);

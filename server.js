@@ -11,41 +11,72 @@ import { fileURLToPath } from "url";
 // --- CONFIG ---
 dotenv.config();
 const app = express();
-app.use(express.json());
-app.use(cors());
-app.use(cookieParser());
-
-// CORS per permettere cookie
 app.use(
   cors({
-    origin: "*",
-    credentials: true,
+    origin: "http://localhost:4200",
+    credentials: true, // permette l’invio dei cookie (es. refreshToken)
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+      "Origin",
+      "X-Requested-With",
+      "Content-Type",
+      "Accept",
+      "Authorization",
+    ],
   })
 );
+// Log dettagliato di ogni richiesta
+app.use((req, res, next) => {
+  console.log("========== NUOVA RICHIESTA ==========");
+  console.log("🔹 Metodo:", req.method);
+  console.log("🔹 URL:", req.originalUrl);
+  console.log("🔹 Headers:", req.headers);
+  console.log("🔹 Cookies:", req.cookies);
+  console.log("🔹 Body:", req.body);
+  console.log("=====================================");
+  next();
+});
 
-const PORT = process.env.PORT;
+// Middleware globali
+app.use(express.json());
+app.use(cookieParser());
+
+// --- VARIABILI D’AMBIENTE ---
+const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI;
 
-// --- CONNESSIONE MONGODB ---
+// --- CONNESSIONE A MONGODB ---
 mongoose
   .connect(MONGO_URI)
   .then(() => console.log("✅ MONGODB CONNESSO"))
-  .catch((err) => console.error("❌ ERRORE MONGO:", err));
+  .catch((err) => console.error("❌ ERRORE CONNESSIONE MONGO:", err));
 
-// --- IMPORT AUTOMATICO ROTTE ---
+// --- IMPORT AUTOMATICO DELLE ROTTE ---
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 const routesPath = path.join(__dirname, "routes");
+
+// Caricamento automatico di tutte le rotte nella cartella /routes
 fs.readdirSync(routesPath).forEach(async (file) => {
   if (file.endsWith(".js")) {
-    const route = await import(`./routes/${file}`);
-    // usa come prefisso il nome del file senza estensione
-    const routeName = "/api/" + file.replace(".js", "");
-    app.use(routeName, route.default);
-    console.log(`📦 Rotta caricata: ${routeName}`);
+    try {
+      const route = await import(`./routes/${file}`);
+      const routeName = "/api/" + file.replace(".js", "");
+      app.use(routeName, route.default);
+      console.log(`📦 Rotta caricata: ${routeName}`);
+    } catch (error) {
+      console.error(`❌ Errore nel caricamento di ${file}:`, error);
+    }
   }
 });
 
+// --- GESTIONE ERRORI GLOBALI ---
+app.use((err, req, res, next) => {
+  console.error("🔥 ERRORE SERVER:", err);
+  res.status(500).json({ error: "Errore interno del server" });
+});
+
 // --- AVVIO SERVER ---
-app.listen(PORT, () => console.log(`🚀 Server attivo su porta ${PORT}`));
+app.listen(PORT, () =>
+  console.log(`🚀 Server attivo e in ascolto sulla porta ${PORT}`)
+);
