@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/User.ts";
 import express from "express";
-import cookieParser from "cookie-parser"; // NON dimenticare di usarlo nel server
+import cookieParser from "cookie-parser";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const ACCESS_TOKEN_EXPIRE = "1h"; // access token breve
