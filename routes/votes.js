@@ -33,4 +33,27 @@ router.post("/", authMiddleware, async (req, res) => {
   }
 });
 
+// Endpoint GET per ottenere i voti dell'utente loggato
+router.get("/", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Recupera tutti i voti dell'utente
+    const votes = await Vote.find({ userId: userId }).sort({ createdAt: -1 });
+    // -1 ordina dal più recente al più vecchio
+
+    if (!votes || votes.length === 0) {
+      return res
+        .status(200)
+        .json({ message: "Nessun voto trovato", votes: [] });
+    }
+
+    // Ritorna i voti
+    res.status(200).json(votes);
+  } catch (err) {
+    console.error("Errore recupero voti:", err);
+    res.status(500).json({ error: "Errore server: " + err });
+  }
+});
+
 export default router;
