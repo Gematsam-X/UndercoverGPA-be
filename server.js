@@ -13,8 +13,11 @@ dotenv.config();
 const app = express();
 app.use(
   cors({
-    origin: "http://localhost:4200",
-    credentials: true, // permette l’invio dei cookie (es. refreshToken)
+    origin: [
+      "https://undercovergpa.netlify.app", // prod
+      "http://localhost:4200", // dev Angular
+    ],
+    credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: [
       "Origin",
@@ -25,6 +28,7 @@ app.use(
     ],
   })
 );
+
 // Log dettagliato di ogni richiesta
 app.use((req, res, next) => {
   console.log("========== NUOVA RICHIESTA ==========");
