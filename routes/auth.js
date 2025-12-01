@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import User from "../models/User.ts";
+import User from "../models/User.js";
 import express from "express";
 import cookieParser from "cookie-parser";
 

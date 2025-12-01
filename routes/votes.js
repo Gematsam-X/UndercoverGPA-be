@@ -1,5 +1,5 @@
 import authMiddleware from "../middlewares/authMiddleware.js";
-import Vote from "../models/Vote.ts";
+import Vote from "../models/Vote.js";
 import express from "express";
 
 const router = express.Router();

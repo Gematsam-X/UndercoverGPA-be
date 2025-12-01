@@ -34,6 +34,7 @@ app.use((req, res, next) => {
   console.log("🔹 Cookies:", req.cookies);
   console.log("🔹 Body:", req.body);
   console.log("=====================================");
+  console.log(res.statusCode);
   next();
 });
 
@@ -68,6 +69,10 @@ fs.readdirSync(routesPath).forEach(async (file) => {
       console.error(`❌ Errore nel caricamento di ${file}:`, error);
     }
   }
+});
+
+app.get("/api/ok", (req, res) => {
+  res.status(200).json({ message: "Server operativo!" });
 });
 
 // --- GESTIONE ERRORI GLOBALI ---
