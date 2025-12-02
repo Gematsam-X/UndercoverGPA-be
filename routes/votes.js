@@ -56,4 +56,26 @@ router.get("/", authMiddleware, async (req, res) => {
   }
 });
 
+router.delete("/:_id", authMiddleware, async (req, res) => {
+  try {
+    const voteId = req.params._id;
+    const userId = req.user.id;
+
+    // Trova il voto per ID e userId
+    const vote = await Vote.findOne({ _id: voteId, userId: userId });
+
+    if (!vote) {
+      return res.status(404).json({ error: "Voto non trovato" });
+    }
+
+    // Elimina il voto
+    await Vote.deleteOne({ _id: voteId });
+
+    res.status(200).json({ message: "Voto eliminato con successo" });
+  } catch (err) {
+    console.error("Errore eliminazione voto:", err);
+    res.status(500).json({ error: "Errore server: " + err });
+  }
+});
+
 export default router;
