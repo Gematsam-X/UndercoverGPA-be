@@ -75,14 +75,14 @@ fs.readdirSync(routesPath).forEach(async (file) => {
   }
 });
 
-app.get("/api/ok", (req, res) => {
-  res.status(200).json({ message: "Server operativo!" });
-});
-
 // --- GESTIONE ERRORI GLOBALI ---
 app.use((err, req, res, next) => {
   console.error("🔥 ERRORE SERVER:", err);
   res.status(500).json({ error: "Errore interno del server" });
+});
+
+app.get("/api/ok", (req, res) => {
+  res.status(200).json({ message: "Server on!" });
 });
 
 // --- AVVIO SERVER ---

@@ -45,10 +45,10 @@ router.post("/login", async (req, res) => {
     // Salva refresh token nel cookie HTTP-only
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: false, // ⚠️ metti true solo se usi HTTPS
+      secure: false, // metti true solo se usi HTTPS
       sameSite: "Lax", // ✅ "Lax" permette cookie tra localhost:4200 e :3000
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 giorni
-      path: "/", // 👈 importante per essere letto ovunque
+      path: "/",
     });
 
     // Ritorna solo accessToken e username (email non serve lato client se vuoi)
