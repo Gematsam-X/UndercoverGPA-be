@@ -85,6 +85,13 @@ app.get("/api/ok", (req, res) => {
   res.status(200).json({ message: "Server on!" });
 });
 
+// Middleware globale che ritarda le richieste di 10 secondi
+
+/* app.use(async (req, res, next) => {
+  await new Promise((resolve) => setTimeout(resolve, 10000)); // 10 secondi
+  next();
+});
+*/
 // --- AVVIO SERVER ---
 app.listen(PORT, () =>
   console.log(`🚀 Server attivo e in ascolto sulla porta ${PORT}`)
