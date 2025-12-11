@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import onFinished from "on-finished";
 
 // --- CONFIG ---
 dotenv.config();
@@ -37,8 +38,12 @@ app.use((req, res, next) => {
   console.log("🔹 Headers:", req.headers);
   console.log("🔹 Cookies:", req.cookies);
   console.log("🔹 Body:", req.body);
-  console.log("=====================================");
-  console.log(res.statusCode);
+
+  onFinished(res, () => {
+    console.log("🔹 Status code:", res.statusCode);
+    console.log("=====================================");
+  });
+
   next();
 });
 
@@ -87,11 +92,15 @@ app.get("/api/ok", (req, res) => {
 
 // Middleware globale che ritarda le richieste di 10 secondi
 
-/* app.use(async (req, res, next) => {
+/*
+
+app.use(async (req, res, next) => {
   await new Promise((resolve) => setTimeout(resolve, 10000)); // 10 secondi
   next();
 });
+
 */
+
 // --- AVVIO SERVER ---
 app.listen(PORT, () =>
   console.log(`🚀 Server attivo e in ascolto sulla porta ${PORT}`)
