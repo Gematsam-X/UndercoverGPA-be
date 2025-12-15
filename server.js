@@ -88,10 +88,10 @@ app.use((err, req, res, next) => {
 
 // Middleware globale che ritarda le richieste
 
+/*
 let awake = false;
 
-
-/* app.use((req, res, next) => {
+app.use((req, res, next) => {
   if (!awake) {
     console.log("😴 Render Free sleep mode...");
     console.log("⏳ Waking up (simulazione cold start)...");
