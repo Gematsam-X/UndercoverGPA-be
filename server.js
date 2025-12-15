@@ -86,6 +86,10 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Errore interno del server" });
 });
 
+app.get("/api/ok", (req, res) => {
+  res.status(200).json({ message: "Server operativo!" });
+})
+
 // Middleware globale che ritarda le richieste
 
 /*
