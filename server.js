@@ -86,19 +86,26 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Errore interno del server" });
 });
 
-app.get("/api/ok", (req, res) => {
-  res.status(200).json({ message: "Server on!" });
+// Middleware globale che ritarda le richieste
+
+let awake = false;
+
+
+/* app.use((req, res, next) => {
+  if (!awake) {
+    console.log("😴 Render Free sleep mode...");
+    console.log("⏳ Waking up (simulazione cold start)...");
+
+    awake = true;
+
+    setTimeout(() => {
+      console.log("☀️ Server awake!");
+      next();
+    }, 25_000); // 25 secondi come Render Free, cane dell’orso
+  } else {
+    next();
+  }
 });
-
-// Middleware globale che ritarda le richieste di 10 secondi
-
-/*
-
-app.use(async (req, res, next) => {
-  await new Promise((resolve) => setTimeout(resolve, 10000)); // 10 secondi
-  next();
-});
-
 */
 
 // --- AVVIO SERVER ---
