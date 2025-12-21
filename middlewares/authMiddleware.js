@@ -10,11 +10,18 @@ export default async function authMiddleware(req, res, next) {
   try {
     // 1️⃣ Controlla se c'è l'header Authorization
     const authHeader = req.headers["authorization"];
-    if (!authHeader) return res.status(401).json({ error: "Token mancante" });
-
+    if (!authHeader) {
+      console.log("Auth Header:", authHeader);
+      console.log("Full Headers:", req.headers);
+      return res.status(401).json({
+        error:
+          "Token mancante: non c'è l'header authorization. Ecco la req headers completi. ",
+      });
+    }
     // 2️⃣ Estrae il token (Bearer <token>)
     const token = authHeader.split(" ")[1];
-    if (!token) return res.status(401).json({ error: "Token mancante" });
+    if (!token)
+      return res.status(401).json({ error: "Token mancante: non c'è bearer" });
 
     // 3️⃣ Verifica che il token sia valido
     const payload = jwt.verify(token, JWT_SECRET);

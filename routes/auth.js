@@ -3,6 +3,8 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import express from "express";
 import cookieParser from "cookie-parser";
+import authMiddleware from "../middlewares/authMiddleware.js";
+import Vote from "../models/Vote.js";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const ACCESS_TOKEN_EXPIRE = "1h"; // access token breve
@@ -51,11 +53,12 @@ router.post("/login", async (req, res) => {
       path: "/",
     });
 
-    // Ritorna solo accessToken e username (email non serve lato client se vuoi)
+    // Ritorna acessToken e dati utente
     res.json({
       message: "Login riuscito!",
-      accessToken,
+      accessToken: accessToken,
       username: user.username,
+      email: user.email,
     });
   } catch (error) {
     console.error("Errore login:", error);
@@ -98,8 +101,17 @@ router.post("/token", async (req, res) => {
   try {
     const payload = jwt.verify(refreshToken, JWT_SECRET);
     const user = await User.findById(payload.id);
-    if (!user) return res.status(404).json({ error: "Utente non trovato" });
-
+    if (!user) {
+      console.log(
+        "Utente non trovato per refresh token. Id: ",
+        payload.id,
+        " payload completo: ",
+        payload,
+        " utente trovato: ",
+        user
+      );
+      return res.status(404).json({ error: "Utente non trovato" });
+    }
     const newAccessToken = generateAccessToken(user);
     res.json({ accessToken: newAccessToken });
   } catch (err) {
@@ -110,18 +122,52 @@ router.post("/token", async (req, res) => {
 // --- CHECK EMAIL / USERNAME ---
 router.get("/check", async (req, res) => {
   try {
+    // 🚫 DISABILITA CACHE SOLO QUI (niente 304)
+    res.set({
+      "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+      Pragma: "no-cache",
+      Expires: "0",
+    });
+
     const { email, username } = req.query;
+
     if (!email && !username)
-      return res.status(400).json({ error: "Specificare email o username" });
+      return res
+        .status(400)
+        .json({ error: "Specificare email o username" });
 
     const filter = {};
     if (email) filter.email = email;
     if (username) filter.username = username;
 
-    const user = await User.findOne(filter);
-    res.json({ exists: !!user });
+    const user = await User.findOne(filter).lean();
+
+    res.status(200).json({ exists: !!user });
   } catch (error) {
     console.error("Errore controllo email/username:", error);
+    res.status(500).json({ error: "Errore del server" });
+  }
+});
+
+// --- DELETE UTENTE LOGGATO ---
+router.delete("/user", authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id; // authMiddleware deve aver messo req.user
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "Utente non trovato" });
+
+    // ✅ Cancella dati associati
+    await Vote.deleteMany({ userId });
+
+    // Cancella l'utente
+    await User.findByIdAndDelete(userId);
+
+    res.json({
+      message: "Utente e tutti i dati associati eliminati correttamente!",
+    });
+  } catch (error) {
+    console.error("Errore eliminazione utente:", error);
     res.status(500).json({ error: "Errore del server" });
   }
 });

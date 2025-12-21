@@ -12,6 +12,11 @@ import onFinished from "on-finished";
 // --- CONFIG ---
 dotenv.config();
 const app = express();
+
+// Middleware globali
+app.use(express.json());
+app.use(cookieParser());
+
 app.use(
   cors({
     origin: [
@@ -46,10 +51,6 @@ app.use((req, res, next) => {
 
   next();
 });
-
-// Middleware globali
-app.use(express.json());
-app.use(cookieParser());
 
 // --- VARIABILI D’AMBIENTE ---
 const PORT = process.env.PORT || 3000;
@@ -90,29 +91,6 @@ app.get("/api/ok", (req, res) => {
   res.status(200).json({ message: "Server operativo!" });
 })
 
-// Middleware globale che ritarda le richieste
-
-/*
-let awake = false;
-
-app.use((req, res, next) => {
-  if (!awake) {
-    console.log("😴 Render Free sleep mode...");
-    console.log("⏳ Waking up (simulazione cold start)...");
-
-    awake = true;
-
-    setTimeout(() => {
-      console.log("☀️ Server awake!");
-      next();
-    }, 25_000); // 25 secondi come Render Free, cane dell’orso
-  } else {
-    next();
-  }
-});
-*/
-
-// --- AVVIO SERVER ---
 app.listen(PORT, () =>
   console.log(`🚀 Server attivo e in ascolto sulla porta ${PORT}`)
 );
